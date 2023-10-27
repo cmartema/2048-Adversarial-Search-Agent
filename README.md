@@ -3,13 +3,13 @@
 In this assignment, you will create an adversarial search agent to play the 2048-puzzle game. A demo of the game is available [here](https://play2048.co/).
 
 ## Table of Contents
-I. 2048 As A Two-Player Game
-II. Choosing a Search Algorithm: Expectiminimax
-III. Using The Skeleton Code
-IV. What You Need to Submit
-V. Important Information
-VI. Optional Heuristics
-VII. Before You Submit
+I. [2048 As A Two-Player Game](#i-2048-as-a-two-player-game)
+II. [Choosing a Search Algorithm: Expectiminimax](#ii-choosing-a-search-algorithm-expectiminimax)
+III. [Using The Skeleton Code](#iii-using-the-skeleton-code)
+IV. [What You Need to Submit](#iv-what-you-need-to-submit)
+V. [Important Information](#v-important-information)
+VI. [Optional Heuristics](#vi-optional-heuristics)
+VII. [Before You Submit](#vii-before-you-submit)
 
 ## I. 2048 As A Two-Player Game
 2048 is played on a 4x4 grid with numbered tiles which can slide up, down, left, or right. This game can be modeled as a two-player game, in which the computer AI generates a 2- or 4-tile placed randomly on the board, and the player then selects a direction to move the tiles. Note that the tiles move until they either (1) collide with another tile, or (2) collide with the edge of the grid. If two tiles of the same number collide in a move, they merge into a single tile valued at the sum of the two originals. The resulting tile cannot merge with another tile again in the same move.
