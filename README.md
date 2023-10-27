@@ -50,8 +50,7 @@ class IntelligentAgent(BaseAI):
         # Selects a random move and returns it
         moveset = grid.getAvailableMoves()
         return random.choice(moveset)[0] if moveset else None
-
-
+```
 
 ## For Any Questions and Detailed Instructions
 For more detailed instructions and information, please refer to the full PDF document: [Download hw3_coding.pdf](hw3_coding.pdf).
