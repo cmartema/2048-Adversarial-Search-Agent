@@ -1,107 +1,110 @@
 import random
 from BaseAI import BaseAI
+import time
+
 class IntelligentAgent(BaseAI): 
-    def getMove(self, grid):   
-        best_move = None
-        best_utility = float("-inf")
-        alpha = float("-inf")
-        beta = float("inf")
-
-        for move_tuple in  grid.getAvailableMoves():
-            move = move_tuple[0]
-            child = grid.clone()
-            child.move(move)
-            utility = self.expectiminimax(child, 3, False, alpha, beta)
-
-            if utility > best_utility:
-                best_move = move
-                best_utility = utility
-
-            alpha = max(alpha, utility)
     
-        return best_move
+    def __init__(self):
+        self.depth_limit = 3
+        self.time_limit = 0.2
+        self.start_time = time.process_time()
+    def getMove(self, grid):
+        '''   
+        # Selects a random move and returns it
+        moveset = grid.getAvailableMoves()
+        return random.choice(moveset)[0] if moveset else None
+        '''
+        moveset = grid.getAvailableMoves()
+        best_move, _ = self.Maximize(grid, float("-inf"), float("inf"), 0)
+        return best_move[0]
+        
+    def Minimize(self, grid, alpha, beta, depth):
+        if self.terminalTest(grid) or depth >= self.depth_limit or time.process_time() > self.time_limit:
+            return(None, self.evaluate(grid))
+        
+        minChild = None
+        minUtility = float("inf")
+
+        for child in grid.getAvailableMoves():
+            Child_copy = grid.clone()
+            Child_copy.move(child)
+
+            _, utility = self.Maximize(Child_copy, alpha, beta, depth + 1) 
+
+            if utility < minUtility:
+                minChild, minUtility = child, utility
+                
+            if minUtility <= alpha:
+                break
+            if minUtility < beta:
+                beta = minUtility
+        return minChild, minUtility
     
+    def Maximize(self, grid, alpha, beta, depth):
+        if self.terminalTest(grid) or depth >= self.depth_limit or time.process_time() > self.time_limit:
+            return(None, self.evaluate(grid))
+        
+        maxChild = None
+        maxUtility = float("-inf")
 
-    def expectiminimax(self, grid, depth, maximizing_player, alpha, beta):
-        if depth == 0 or not self.areMovesAvailable(grid):
-            return self.evaluate(grid)
+        for child in grid.getAvailableMoves():
+            Child_copy = grid.clone()
+            Child_copy.move(child)
+            _, utility = self.Minimize(Child_copy, alpha, beta, depth + 1) 
 
-        if maximizing_player:
-            max_utility = float("-inf")
-            for move in grid.getAvailableMoves():
-                child = grid.clone()
-                child.move(move)
-                utility = self.expectiminimax(child, depth - 1, False, alpha, beta)
-                max_utility = max(max_utility, utility)
-                alpha = max(alpha, utility)
-                if beta <= alpha:
-                    break
-            return max_utility
-        else:
-            expected_utility = 0.0
-            num_children = 0
-            for cell in grid.getAvailableCells():
-                for tile_value, probability in [(2, 0.9), (4, 0.1)]:
-                    child = grid.clone()
-                    child.setCellValue(cell, tile_value)
-                    expected_utility += probability * self.expectiminimax(child, depth - 1, True, alpha, beta)
-                    num_children += 1
-                    if beta <= alpha:
-                        break
-            return expected_utility / num_children
+            if utility > maxUtility:
+                maxChild, maxUtility = child, utility
+                
+            if maxUtility >= beta:
+                break
+            if maxUtility > alpha:
+                alpha = maxUtility
+        return maxChild, maxUtility
+    
+    def terminalTest(self, grid):
+      return not grid.getAvailableMoves() or self.exceedTimeLimit()
+    
+    def exceedTimeLimit(self):
+        return time.process_time()> self.time_limit
 
     def evaluate(self, grid):
-        smooth_weight = 0.1
-        monotonic_weight = 1.0
-
-        smoothness = self.calculate_smoothness(grid)
-        monotonicity = self.calculate_monotonicity(grid)
-        max_tile = grid.getMaxTile()
-        empty_cells = len(grid.getAvailableCells())
-
-        # Calculate the overall heuristic value
-        heuristic = (
-            monotonic_weight * monotonicity
-            - smooth_weight * smoothness
-            + max_tile
-            + empty_cells
-        )
-        return heuristic
-    
-    def calculate_smoothness(self, grid):
-        smoothness = 0.0
-        for row in grid.map:
-            smoothness += sum(abs(row[i] - row[i + 1]) for i in range(len(row) - 1))
-        for col in range(len(grid.map[0])):
-            smoothness += sum(abs(grid.map[row][col] - grid.map[row + 1][col]) for row in range(len(grid.map) - 1))
-
-        # Normalize the smoothness heuristic
-        smoothness /= (len(grid.map) * len(grid.map[0]) - 1)
-        return smoothness  
-
-    def calculate_monotonicity(self, grid):
-        monotonicity = 0.0
-        for row in grid.map:
-            for i in range(len(row) - 1):
-                monotonicity += abs(row[i] - row[i + 1])
-        for col in range(len(grid.map[0])):
-            for row in range(len(grid.map) - 1):
-                monotonicity += abs(grid.map[row][col] - grid.map[row + 1][col])
-
-        # Normalize the monotonicity heuristic
-        monotonicity /= (len(grid.map) * len(grid.map[0]))
-        return monotonicity
-
-    def areMovesAvailable(self, grid):
-        for move in grid.getAvailableMoves():
-            return True
-        return False        
-
-
-
-
-            
+        smoothness_weight = 1.0  # Adjust the weights as needed
+        monotonicity_weight = 1.0
+        return self.weighted_evaluation(grid, smoothness_weight, monotonicity_weight) 
         
+    def weighted_evaluation(self, grid, smoothness_weight, monotonicity_weight):
+        smoothness_score = self.smoothness(grid)
+        monotonicity_score = self.monotonicity(grid)
+        return smoothness_weight * smoothness_score + monotonicity_weight * monotonicity_score        
 
-
+    def monotonicity(self, grid):
+        ''' Checks rows and columns to determine if the 
+            values are in a non-decreasing or non-increasing order 
+            and accumulates a score based on these patterns.'''
+        monotonicity_score = 0
+        for i in range(grid.size):
+            row = [grid.map[i][j] for j in range(grid.size)]
+            reversed_row = row[::-1]
+            if sorted(row) == row or sorted(reversed_row) == reversed_row:
+                monotonicity_score += sum(row)
+        for j in range(grid.size):
+            col = [grid.map[i][j] for i in range(grid.size)]
+            reversed_col = col[::-1]
+            if sorted(col) == col or sorted(reversed_col) == reversed_col:
+                monotonicity_score += sum(col)
+        return monotonicity_score
+    
+    def smoothness(self, grid):
+        ''' Penalizes adjacent tile differences, 
+            encouraging smoother transitions between neighboring tiles.'''
+        smoothness_score = 0
+        for i in range(grid.size):
+            for j in range(grid.size - 1):
+                if grid.map[i][j] and grid.map[i][j + 1]:
+                    smoothness_score -= abs(grid.map[i][j] - grid.map[i][j + 1])
+        for j in range(grid.size):
+            for i in range(grid.size - 1):
+                if grid.map[i][j] and grid.map[i + 1][j]:
+                    smoothness_score -= abs(grid.map[i][j] - grid.map[i + 1][j])
+        return smoothness_score
     
