@@ -2,6 +2,7 @@ from Grid       import Grid
 from ComputerAI import ComputerAI
 from IntelligentAgent  import IntelligentAgent
 from Displayer  import Displayer
+from datetime  import datetime
 
 import time
 import random
@@ -110,13 +111,46 @@ class GameManager:
         return self.grid.getMaxTile()
 
 def main():
+    #Function to test
+    '''    
+    k = []
+    i = 0
+    start_time = datetime.now()
+    while i < 10:
+        j = 0
+        l = []
+        while j < 10:
+            intelligentAgent = IntelligentAgent()
+            computerAI  = ComputerAI()
+            displayer   = Displayer()
+
+    
+            gameManager = GameManager(4, intelligentAgent, computerAI, displayer)
+            maxTile     = gameManager.start()
+            print(maxTile)
+            l.append(maxTile)
+            j += 1
+        i+=1
+        l.sort()
+        k.append(l)
+    #gameManager = GameManager(4, intelligentAgent, computerAI, displayer)
+    #maxTile     = gameManager.start()
+    #print(maxTile)
+    end_time = datetime.now()
+    print('Duration: {}'.format(end_time-start_time))
+    #print(l)
+    for i in k:
+        print(i)
+    '''
     intelligentAgent = IntelligentAgent()
     computerAI  = ComputerAI()
     displayer   = Displayer()
     gameManager = GameManager(4, intelligentAgent, computerAI, displayer)
 
     maxTile     = gameManager.start()
+    
     print(maxTile)
+
 
 if __name__ == '__main__':
     main()
